@@ -89,7 +89,46 @@ pm2 monit
 # If you want to add it to startup
 pm2 save && pm2 startup
 ```
+## (Optional) Install as no root-user
+It is allways a good idea to install the services as no root in order to increase the security of the instalation.
+in order to install as no root you need to create a no-root user (you can change after of the install to disable the console).
+The steps are similar like the root install but must to switch the user that you choose.
 
+As a root:
+```bash
+# Update your npm
+npm install npm@9 -g
+
+cd /opt
+git clone https://github.com/louislam/uptime-kuma.git
+cd uptime-kuma
+npm run setup
+
+#Create one user like kuma
+groupadd kuma
+useradd -b /opt/uptime-kuma -g kuma kuma
+npm install pm2 -g 
+
+#Be owner of the /opt/uptime-kuma
+chown -R kuma:kuma /opt/uptime-kuma
+
+#Go to be the kuma user
+su - kuma
+
+# Install an enable all pm2
+pm2 install pm2-logrotate
+
+# Start Server
+pm2 start server/server.js --name uptime-kuma
+
+# you can enable on systemd running as pm2
+pm2 save && pm2 startup
+sudo env PATH=$PATH:/usr/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup systemd -u kuma --hp /opt/uptime-kuma/
+# if you don't have sudo go to be root again and execute.
+env PATH=$PATH:/usr/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup systemd -u kuma --hp /opt/uptime-kuma/
+# Test if uptime-kuda is working as no root user
+ps -fea | grep kuma
+kuma       10699    8444  2 11:45 ?        00:01:23 node /opt/uptime-kuma/server/server.js
 
 ## (Optional) One more step for Reverse Proxy
 
